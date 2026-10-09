@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $name
  * @property string $type
+ * @property array<string>|null $values
  * @property bool $is_required
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -29,6 +30,7 @@ class Attribute extends Model
     {
         return [
             'is_required' => 'boolean',
+            'values' => 'array',
         ];
     }
 

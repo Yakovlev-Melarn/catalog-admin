@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property int|null $category_id
  * @property string|null $description
+ * @property array<string>|null $images
  * @property string $price
  * @property bool $is_active
  * @property Carbon|null $created_at
@@ -34,6 +35,7 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'is_active' => 'boolean',
+            'images' => 'array',
         ];
     }
 
