@@ -15,11 +15,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RoleSeeder::class);
+
         if (! User::query()->where('email', 'test@example.com')->exists()) {
             User::factory()->create([
                 'name' => 'Test User',
                 'email' => 'test@example.com',
             ]);
+        }
+
+        /** @var User|null $adminUser */
+        $adminUser = User::query()->where('email', 'test@example.com')->first();
+
+        if ($adminUser !== null && ! $adminUser->hasRole('admin')) {
+            $adminUser->assignRole('admin');
         }
 
         $this->call([
