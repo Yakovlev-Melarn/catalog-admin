@@ -12,17 +12,19 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $name
+ * @property string|null $sku
  * @property int|null $category_id
  * @property string|null $description
  * @property array<string>|null $images
  * @property string $price
+ * @property int $stock
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Category|null $category
  * @property-read Collection<int, Attribute> $attributes
  */
-#[Fillable(['name', 'category_id', 'description', 'price', 'is_active'])]
+#[Fillable(['name', 'sku', 'category_id', 'description', 'price', 'stock', 'is_active'])]
 class Product extends Model
 {
     /**
@@ -34,6 +36,7 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'stock' => 'integer',
             'is_active' => 'boolean',
             'images' => 'array',
         ];

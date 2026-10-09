@@ -23,6 +23,10 @@ class ProductForm
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                TextInput::make('sku')
+                    ->label('SKU')
+                    ->maxLength(255)
+                    ->unique(ignoreRecord: true),
                 Select::make('category_id')
                     ->label('Категория')
                     ->relationship('category', 'name')
@@ -67,6 +71,11 @@ class ProductForm
                     ->required()
                     ->numeric()
                     ->prefix('₽'),
+                TextInput::make('stock')
+                    ->label('Остаток')
+                    ->numeric()
+                    ->minValue(0)
+                    ->default(0),
                 Toggle::make('is_active')
                     ->label('Активен')
                     ->default(true),
