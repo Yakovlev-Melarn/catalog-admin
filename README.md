@@ -29,14 +29,14 @@ cp .env.example .env
 php artisan key:generate
 # при необходимости поправить DB_HOST/DB_PORT/DB_USERNAME/DB_PASSWORD
 
-# 4. Миграции и демо-данные
-php artisan migrate --seed
+# 4. Миграции и демо-данные (в контейнере php)
+docker compose exec -T php sh -c "cd /srv/projects/catalog && php artisan migrate --seed"
 
-# 5. Запуск
-php artisan serve
+# 5. Запуск — nginx + php-fpm уже в compose, отдельный запуск не нужен
+# после composer install / крупных правок PHP: docker compose restart php
 ```
 
-Панель: `http://localhost:8000/admin`
+Панель: `http://catalog.localhost/admin`
 
 ### Демо-данные
 
@@ -113,6 +113,12 @@ php artisan test
 ```bash
 vendor/bin/pint
 ```
+
+## Частые проблемы
+
+- **504 Gateway Time-out при входе / «Trait not found» в логах** — stale opcache
+  в долгоживущем FPM (`opcache.validate_timestamps = 0`). После `composer
+  install/require` или крупных правок PHP: `docker compose restart php`.
 
 ## Скриншоты
 
