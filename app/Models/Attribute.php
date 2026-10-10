@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Product> $products
  */
-#[Fillable(['name', 'type', 'is_required'])]
+#[Fillable(['name', 'type', 'is_required', 'values'])]
 class Attribute extends Model
 {
     /**

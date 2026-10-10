@@ -1,58 +1,121 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Catalog Admin
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Админ-панель управления каталогом товаров: Laravel 13 + Filament v5 + PostgreSQL.
 
-## About Laravel
+## Стек
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Компонент | Версия |
+|---|---|
+| PHP | 8.4 |
+| Laravel | 13 |
+| Filament | 5 |
+| PostgreSQL | 16 |
+| spatie/laravel-permission | 8 |
+| Pint / PHPUnit | — |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Установка
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Docker (WSL2 + Docker Desktop)
 
 ```bash
-composer require laravel/boost --dev
+# 1. Поднять базу (из каталога docker-compose.yml)
+docker compose up -d
 
-php artisan boost:install
+# 2. Зависимости
+composer install
+
+# 3. Конфигурация
+cp .env.example .env
+php artisan key:generate
+# при необходимости поправить DB_HOST/DB_PORT/DB_USERNAME/DB_PASSWORD
+
+# 4. Миграции и демо-данные
+php artisan migrate --seed
+
+# 5. Запуск
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Панель: `http://localhost:8000/admin`
 
-## Contributing
+### Демо-данные
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Seeder создаёт:
 
-## Code of Conduct
+- категории: Электроника (Смартфоны, Ноутбуки), Одежда (Обувь);
+- 10 характеристик (Бренд, Цвет, ...);
+- 20 товаров (SKU-0001…SKU-0020, с остатками и характеристиками);
+- роли `admin` и `manager`;
+- пользователя `test@example.com` (пароль `password`) с ролью `admin`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Архитектура
 
-## Security Vulnerabilities
+```
+app/
+├── DTO/            # ProductDTO, CategoryDTO, AttributeDTO
+├── Filament/
+│   └── Resources/  # Products/, Categories/, Attributes/
+│                   #   Pages/ + Schemas/{Form} + Tables/{Table}
+├── Models/         # Product, Category, Attribute, ProductAttribute, User
+├── Policies/       # ProductPolicy, CategoryPolicy, AttributePolicy
+├── Repositories/   # ProductRepository, CategoryRepository
+└── Services/       # ProductService, CategoryService, AttributeService
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Слои
 
-## License
+- **Models** — Eloquent, `#[Fillable]`-атрибуты, `@property`-докблоки.
+- **DTO** — входные данные сервисов, `fromArray()`/`toArray()`.
+- **Repositories** — доступ к данным: CRUD, фильтрация, дерево категорий
+  (`getTree`, `getChildren`, `getDescendants`, `getAncestors`, `updateSortOrders`).
+- **Services** — бизнес-логика и валидация:
+  - `ProductService` — CRUD + синхронизация характеристик в `DB::transaction`;
+  - `CategoryService` — CRUD, защита от циклов при переносе в собственную
+    подкатегорию, запрет удаления категорий с подкатегориями или товарами;
+  - `AttributeService` — CRUD, валидация (тип, уникальное имя,
+    обязательные значения для `select`), запрет удаления используемых в товарах.
+- **Policies** — правила доступа, применяются Filament автоматически
+  (действия, страницы, bulk-операции).
+- **Filament** — формы (`Schemas`), таблицы (`Tables`) и страницы
+  (`Pages`) ресурсов, разделённые по классам.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Роли
+
+| Роль | Товары | Категории | Атрибуты |
+|---|---|---|---|
+| `admin` | все действия | все действия | все действия |
+| `manager` | создание, просмотр, изменение | создание, просмотр, изменение | — |
+| без роли | — | — | — |
+
+`admin` — через `Gate::before` (полный доступ); доступ к панели ограничен
+`FilamentUser::canAccessPanel()` — только пользователи с ролью `admin`/`manager`.
+
+### Таблица товаров
+
+- поиск по названию и SKU;
+- фильтр по категории с учётом всех потомков (дерево с `<optgroup>`);
+- динамические фильтры по атрибуту и его значению;
+- сортировка по цене, остатку, дате создания;
+- фильтр по активности.
+
+## Тесты
+
+```bash
+php artisan test
+```
+
+- **Feature**: CRUD каждой сущности через сервисы, доступ по ролям
+  (политики + HTTP-страницы + авторизация действий), поиск и фильтры таблицы;
+- **Unit**: структура дерева категорий, валидация характеристик.
+
+## Стиль кода
+
+```bash
+vendor/bin/pint
+```
+
+## Скриншоты
+
+| Товары | Категории | Атрибуты |
+|---|---|---|
+| ![](docs/screenshots/products.png) | ![](docs/screenshots/categories.png) | ![](docs/screenshots/attributes.png) |
