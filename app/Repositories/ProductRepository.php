@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class ProductRepository
 {
@@ -79,10 +80,18 @@ class ProductRepository
         $attributes = $data['attributes'] ?? null;
         unset($data['attributes']);
 
+        $previousImages = $this->imagesOf($product);
+
         $product->update($data);
 
         if ($attributes !== null) {
             $this->syncAttributes($product, $attributes);
+        }
+
+        $removed = array_diff($previousImages, $this->imagesOf($product));
+
+        if ($removed !== []) {
+            $this->deleteImageFiles(array_values($removed));
         }
 
         return $product;
@@ -90,7 +99,13 @@ class ProductRepository
 
     public function delete(Product $product): void
     {
+        $images = $this->imagesOf($product);
+
         $product->delete();
+
+        if ($images !== []) {
+            $this->deleteImageFiles($images);
+        }
     }
 
     /**
@@ -105,6 +120,30 @@ class ProductRepository
         }
 
         $product->attributes()->sync($pivot);
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function imagesOf(Product $product): array
+    {
+        $images = $product->images;
+
+        return is_array($images) ? $images : [];
+    }
+
+    /**
+     * @param  array<string>  $paths
+     */
+    private function deleteImageFiles(array $paths): void
+    {
+        $disk = Storage::disk('public');
+
+        foreach ($paths as $path) {
+            if ($disk->exists($path)) {
+                $disk->delete($path);
+            }
+        }
     }
 
     /**

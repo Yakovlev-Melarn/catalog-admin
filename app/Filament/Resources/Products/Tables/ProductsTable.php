@@ -24,10 +24,13 @@ class ProductsTable
             ->searchable(['name', 'sku'])
             ->columns([
                 ImageColumn::make('images')
-                    ->label('Изображение')
+                    ->label('')
                     ->disk('public')
-                    ->limit(2),
+                    ->limit(1),
                 TextColumn::make('name')
+                    ->label('Название')
+                    ->limit(30)
+                    ->tooltip(fn (string $state): string => $state)
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('sku')
@@ -40,6 +43,7 @@ class ProductsTable
                     ->placeholder('—')
                     ->searchable(),
                 TextColumn::make('price')
+                    ->label('Цена')
                     ->money('RUB')
                     ->sortable(),
                 TextColumn::make('stock')
@@ -55,6 +59,7 @@ class ProductsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Обновлён')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

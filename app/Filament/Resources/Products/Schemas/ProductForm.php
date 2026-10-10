@@ -21,6 +21,7 @@ class ProductForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Название')
                     ->required()
                     ->maxLength(255),
                 TextInput::make('sku')
@@ -68,6 +69,7 @@ class ProductForm
                     ->label('Описание')
                     ->columnSpanFull(),
                 TextInput::make('price')
+                    ->label('Цена')
                     ->required()
                     ->numeric()
                     ->prefix('₽'),

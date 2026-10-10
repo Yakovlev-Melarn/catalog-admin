@@ -14,6 +14,7 @@ class CategoryForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Название')
                     ->required()
                     ->maxLength(255),
                 Select::make('parent_id')

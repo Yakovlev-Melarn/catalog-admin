@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property-read Category|null $category
  * @property-read Collection<int, Attribute> $attributes
  */
-#[Fillable(['name', 'sku', 'category_id', 'description', 'price', 'stock', 'is_active'])]
+#[Fillable(['name', 'sku', 'category_id', 'description', 'images', 'price', 'stock', 'is_active'])]
 class Product extends Model
 {
     /**

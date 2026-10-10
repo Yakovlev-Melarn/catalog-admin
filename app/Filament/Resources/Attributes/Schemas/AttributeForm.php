@@ -16,6 +16,7 @@ class AttributeForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Название')
                     ->required()
                     ->maxLength(255),
                 Select::make('type')
